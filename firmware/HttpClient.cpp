@@ -176,6 +176,8 @@ void HttpClient::request(http_request_t &aRequest, http_response_t &aResponse, h
     unsigned long firstRead = millis();
     bool error = false;
     bool timeout = false;
+    String thingToReturn = "";
+    bool addToThingToReturn = false;
 
     do {
         #ifdef LOGGING
@@ -207,6 +209,12 @@ void HttpClient::request(http_request_t &aRequest, http_response_t &aResponse, h
             // Check that received character fits in buffer before storing.
             if (bufferPosition < sizeof(buffer)-1) {
                 buffer[bufferPosition] = c;
+                if (addToThingToReturn) {
+                    thingToReturn += c;
+                }
+                if (c == '|') {
+                    addToThingToReturn = true;
+                }
             } else if ((bufferPosition == sizeof(buffer)-1)) {
                 buffer[bufferPosition] = '\0'; // Null-terminate buffer
                 client.stop();
@@ -265,7 +273,6 @@ void HttpClient::request(http_request_t &aRequest, http_response_t &aResponse, h
         return;
     }
     // Return the entire message body from bodyPos+4 till end.
-    aResponse.body = "";
-    aResponse.body += raw_response.substring(bodyPos+4);
+    aResponse.body = thingToReturn;
     aResponse.status = atoi(statusCode.c_str());
 }
